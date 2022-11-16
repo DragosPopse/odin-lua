@@ -7,8 +7,7 @@ Lua bindings updated from the fork to support -string-style and link_prefix.
   - Add the shared folder to the odin shared collection.
   - Call functions like you would in C; substitute the `lua_/luaL_` prefixes with the corresponding packages: `luaL.dofile`
   - Some function names clash with keywords, therefore they were named with an underscore prefix: `luaL._where` `lua._type`
-  - `lua.pushstring` requires to allocate a `cstring` in order to pass to lua. This is done via the final parameter of the procedure. The result value is the allocated cstring which you can delete after. You can also use a `temp_allocator`. The original `lua_psuhstring` was therefore renamed to `lua.pushcstring`
-  - The `luax` package contains extra lua utlities not available in the standard C API
+  - `lua.pushstring` requires to allocate a `cstring` in order to pass to lua. This is done via the final parameter of the procedure. The result value is the allocated cstring which you can delete after. It defaults to `context.temp_allocator`, so you don't have to do anything for the code to work properly. The original `lua_pushstring` was therefore renamed to `lua.pushcstring`
   
 
 ### Known issues
