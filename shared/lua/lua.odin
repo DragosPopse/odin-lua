@@ -388,7 +388,7 @@ upvalueindex :: proc (i: c.int) -> c.int {
 
 
 // lua_pushstring will convert a string to cstring and push; it will allocate and return the pushed cstring
-pushstring :: proc(L: ^State, str: string, allocator := context.allocator) -> cstring {
+pushstring :: proc(L: ^State, str: string, allocator := context.temp_allocator) -> cstring {
 	cstr := strings.clone_to_cstring(str, allocator)
 	pushcstring(L, cstr)
 	return cstr

@@ -118,7 +118,7 @@ checkversion :: proc (L: ^lua.State) {
 
 // luaL_typename :: (L:^ lua.State,i)	lua_typename(L, lua_type(L,(i)))
 
-// Note(Dragos): Error handling is not properly made I believe. Loadfile can also error
+
 dofile :: proc (L:^ lua.State, fn: cstring) -> (err: c.int) {
 	err = loadfile(L, fn)
 	if err != lua.OK do return
