@@ -113,7 +113,9 @@ checkversion :: proc (L: ^lua.State) {
 // luaL_argcheck :: (L:^ lua.State, cond,arg,extramsg)	\
 // 		((void)((cond) || luaL_argerror(L, (arg), (extramsg))))
 
-// luaL_checkstring :: (L:^ lua.State,n)	(luaL_checklstring(L, (n), NULL))
+checkstring :: proc(L: ^lua.State, n: c.int) -> string {
+	return cast(string)checklstring(L, n, nil)
+}
 // luaL_optstring :: (L:^ lua.State,n,d)	(luaL_optlstring(L, (n), (d), NULL))
 
 // luaL_typename :: (L:^ lua.State,i)	lua_typename(L, lua_type(L,(i)))
