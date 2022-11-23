@@ -90,7 +90,7 @@ Reg :: struct {
 // }	
 
 
-loadfile :: proc (L: ^lua.State, f: cstring) -> c.int {
+loadfile :: proc "c" (L: ^lua.State, f: cstring) -> c.int {
 	return loadfilex(L, f, nil)
 }
 
@@ -113,7 +113,7 @@ checkversion :: proc (L: ^lua.State) {
 // luaL_argcheck :: (L:^ lua.State, cond,arg,extramsg)	\
 // 		((void)((cond) || luaL_argerror(L, (arg), (extramsg))))
 
-checkstring :: proc(L: ^lua.State, n: c.int) -> string {
+checkstring :: proc "c" (L: ^lua.State, n: c.int) -> string {
 	return cast(string)checklstring(L, n, nil)
 }
 // luaL_optstring :: (L:^ lua.State,n,d)	(luaL_optlstring(L, (n), (d), NULL))
@@ -121,21 +121,21 @@ checkstring :: proc(L: ^lua.State, n: c.int) -> string {
 // luaL_typename :: (L:^ lua.State,i)	lua_typename(L, lua_type(L,(i)))
 
 
-dofile :: proc (L:^ lua.State, fn: cstring) -> (err: c.int) {
+dofile :: proc "c" (L:^ lua.State, fn: cstring) -> (err: c.int) {
 	err = loadfile(L, fn)
 	if err != lua.OK do return
 	err = lua.pcall(L, 0, lua.MULTRET, 0)
 	return
 }
 
-dostring :: proc (L:^ lua.State, s: cstring) -> (err: c.int) {
+dostring :: proc "c" (L:^ lua.State, s: cstring) -> (err: c.int) {
 	err = loadstring(L, s)
 	if err != lua.OK do return
 	err = lua.pcall(L, 0, lua.MULTRET, 0)
 	return
 }
 
-getmetatable :: proc (L:^ lua.State, n:cstring) {
+getmetatable :: proc "c" (L:^ lua.State, n:cstring) {
 	lua.getfield(L, lua.REGISTRYINDEX, (n))
 }
 
