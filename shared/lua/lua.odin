@@ -127,7 +127,7 @@ AUTHORS ::	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
 SIGNATURE :: "\x1bLua"
 MULTRET	:: (-1)
 
-NUMBER :: c.float
+NUMBER :: c.double
 INTEGER :: c.longlong
 KCONTEXT :: c.ptrdiff_t
 IDSIZE :: 60
@@ -217,12 +217,12 @@ REFNIL :: -1
 /*
 	TYPES
 */
-CFunction :: proc "c" (L: ^State ) -> c.int
-KFunction :: proc "c" (L: ^State , status: c.int , ctx:KContext) -> c.int
-Reader :: proc "c" (L: ^State , ud: rawptr , sz: ^c.ptrdiff_t) -> cstring
-Writer :: proc "c" (L: ^State , p: cstring, sz:c.ptrdiff_t , ud:rawptr) -> c.int 
-Hook :: proc "c" (L: ^State , ar: ^Debug )
-Alloc :: proc "c" (ud: rawptr, ptr: rawptr, osize:c.ptrdiff_t, nsize:c.ptrdiff_t) -> rawptr
+CFunction :: #type proc "c" (L: ^State ) -> c.int
+KFunction :: #type proc "c" (L: ^State , status: c.int , ctx:KContext) -> c.int
+Reader :: #type proc "c" (L: ^State , ud: rawptr , sz: ^c.ptrdiff_t) -> cstring
+Writer :: #type proc "c" (L: ^State , p: cstring, sz:c.ptrdiff_t , ud:rawptr) -> c.int 
+Hook :: #type proc "c" (L: ^State , ar: ^Debug )
+Alloc :: #type proc "c" (ud: rawptr, ptr: rawptr, osize:c.ptrdiff_t, nsize:c.ptrdiff_t) -> rawptr
 
 // lua_ident: ^u8;
 

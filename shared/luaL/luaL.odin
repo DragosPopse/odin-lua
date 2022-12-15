@@ -69,7 +69,7 @@ NUMSIZES :: (size_of(lua.Integer)*16 + size_of(lua.Number))
 /*
 	TYPES
 */
-unref :: proc "c" (L: ^lua.State, t: c.int, ref: c.int)
+unref :: #type proc "c" (L: ^lua.State, t: c.int, ref: c.int)
 
 // lua_ident: ^u8
 
