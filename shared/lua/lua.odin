@@ -6,8 +6,8 @@ import "core:strings" // see pushstring
 
 // Note(Dragos): This should be made more generic
 when os.OS == .Windows do foreign import liblua "shared:lua542.lib"
-when os.OS == .Linux do foreign import liblua "shared:lua542"
-when os.OS == .Darwin do foreign import liblua "shared:lua542"
+when os.OS == .Linux do foreign import liblua "system:lua"
+when os.OS == .Darwin do foreign import liblua "system:lua"
 
 @(default_calling_convention = "c")
 @(link_prefix = "lua_")
