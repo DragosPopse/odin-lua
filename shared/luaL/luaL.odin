@@ -6,8 +6,8 @@ import "core:c"
 import lua "../lua"
 
 when os.OS == .Windows do foreign import liblua "shared:lua542.lib"
-when os.OS == .Linux do foreign import liblua "shared:lua542"
-when os.OS == .Darwin do foreign import liblua "shared:lua542"
+when os.OS == .Linux do foreign import liblua "system:lua"
+when os.OS == .Darwin do foreign import liblua "system:lua"
 
 @(default_calling_convention = "c")
 @(link_prefix = "luaL_")
