@@ -41,6 +41,7 @@ foreign liblua {
 	optlstring :: proc (L: ^lua.State , arg: c.int , def: cstring, l: ^c.ptrdiff_t) -> cstring ---
 	optnumber :: proc (L: ^lua.State , arg: c.int , def:lua.Number) -> lua.Number ---
 	ref :: proc (L: ^lua.State , t: c.int ) -> c.int ---
+	unref :: proc "c" (L: ^lua.State, t: c.int, ref: c.int) ---
 	requiref :: proc (L: ^lua.State , modname: cstring, openf: lua.CFunction , glb: c.int ) ---
 	setfuncs :: proc (L: ^lua.State , l: ^Reg, nup: c.int ) --- 
 	setmetatable :: proc (L: ^lua.State , tname: cstring) ---
@@ -69,7 +70,7 @@ NUMSIZES :: (size_of(lua.Integer)*16 + size_of(lua.Number))
 /*
 	TYPES
 */
-unref :: #type proc "c" (L: ^lua.State, t: c.int, ref: c.int)
+
 
 // lua_ident: ^u8
 
