@@ -382,9 +382,16 @@ upvalueindex :: proc "c" (i: c.int) -> c.int {
 }
 
 
-// lua_pushstring will convert a string to cstring and push; it will allocate and return the pushed cstring
-pushstring :: proc(L: ^State, str: string, allocator := context.temp_allocator) -> cstring {
-	cstr := strings.clone_to_cstring(str, allocator)
+MAX_ODIN_STRLEN :: #config(LUA_MAX_ODIN_STRLEN, 256)
+@(private = "file")
+_odin_string_backing: [MAX_ODIN_STRLEN]byte 
+
+// lua_pushstring will convert a string to cstring and push.
+pushstring :: proc "c" (L: ^State, str: string) {
+	context = {}
+	sb := strings.builder_from_bytes(_odin_string_backing[:]) // This should be contextless in core
+	strings.write_string(&sb, str)
+	strings.write_byte(&sb, 0) // make it null terminated
+	cstr := strings.unsafe_string_to_cstring(strings.to_string(sb))
 	pushcstring(L, cstr)
-	return cstr
 }
