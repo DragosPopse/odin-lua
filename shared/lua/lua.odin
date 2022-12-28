@@ -4,123 +4,49 @@ import "core:os"
 import "core:c"
 import "core:strings" // see pushstring
 
-// Note(Dragos): This should be made more generic
-when os.OS == .Windows do foreign import liblua "shared:lua542.lib"
-when os.OS == .Linux do foreign import liblua "system:lua"
-when os.OS == .Darwin do foreign import liblua "system:lua"
-
-@(default_calling_convention = "c")
-@(link_prefix = "lua_")
-foreign liblua {
-	// lua_pushfstring :: proc (L: ^State , fmt: cstring , ...) -> cstring ---;
-	// lua_pushvfstring :: proc (L: ^State , fmt: cstring , va_list argp) -> cstring ---;
-
-	absindex :: proc (L: ^State , idx: c.int ) -> c.int ---
-	arith :: proc (L: ^State , op: c.int ) ---
-	atpanic :: proc (L: ^State ,  panicf: CFunction) -> CFunction ---
-	callk :: proc (L: ^State , nargs: c.int, nresults: c.int, ctx: KContext , k: KFunction ) ---
-	checkstack :: proc (L: ^State , n: c.int ) -> c.int ---
-	close :: proc (L: ^State ) ---
-	compare :: proc (L: ^State ,  idx1: c.int,  idx2: c.int,  op: c.int) -> c.int ---
-	concat :: proc (L: ^State , n: c.int) ---
-	copy :: proc (L: ^State , fromidx: c.int , toidx: c.int ) ---
-	createtable :: proc (L: ^State , narr: c.int , nrec: c.int ) ---
-	dump :: proc (L: ^State , writer: Writer , data: rawptr, strip:c.int) -> c.int ---
-	error :: proc (L: ^State ) -> c.int ---
-	gc :: proc (L: ^State , what: c.int, data: c.int) -> c.int ---
-	getallocf :: proc (L: ^State , ud: ^rawptr ) -> c.int ---
-	getfield :: proc (L: ^State , idx: c.int , k: cstring) -> c.int ---
-	getglobal :: proc (L: ^State , name: cstring) -> c.int ---
-	gethook :: proc (L: ^State ) -> Hook ---
-	gethookcount :: proc(L: ^State ) -> c.int ---
-	gethookmask :: proc (L: ^State ) -> c.int ---
-	geti :: proc (L: ^State , idx: c.int , n: Integer) -> c.int ---
-	getinfo :: proc (L: ^State , what: cstring, ar: ^Debug ) -> c.int ---
-	getlocal :: proc (L: ^State , ar: ^Debug , n: c.int) -> cstring ---
-	getmetatable :: proc (L: ^State , objindex:c.int ) -> c.int ---
-	getstack :: proc (L: ^State ,  level: c.int, ar: ^Debug) -> c.int --- 
-	gettable :: proc (L: ^State , idx: c.int ) -> c.int ---
-	gettop :: proc (L: ^State ) -> c.int ---
-	getupvalue :: proc (L: ^State , funcindex: c.int , n: c.int) -> cstring ---
-	getuservalue :: proc (L: ^State , idx: c.int ) -> c.int ---
-	iscfunction :: proc (L: ^State , idx: c.int ) -> c.int ---
-	isinteger :: proc (L: ^State , idx: c.int ) -> c.int ---
-	isnumber :: proc (L: ^State , idx: c.int ) -> c.int ---
-	isstring :: proc (L: ^State , idx: c.int ) -> c.int ---
-	isuserdata :: proc (L: ^State , idx: c.int ) -> c.int ---
-	isyieldable :: proc (L: ^State ) -> c.int ---
-	len :: proc (L: ^State , idx: c.int) ---
-	load :: proc (L: ^State , reader: Reader, dt: rawptr, chunkname: cstring, mode: cstring) -> c.int --- 
-	newstate :: proc (f: Alloc, ud :rawptr) -> ^State ---
-	newthread :: proc (L: ^State ) -> ^State ---
-	newuserdatauv :: proc (L: ^State, sz: c.ptrdiff_t, nuvalue: c.int) -> rawptr ---
-	next :: proc (L: ^State , idx: c.int) -> c.int ---
-	pcallk :: proc (L: ^State , nargs: c.int, nresults: c.int, errfunc: c.int, ctx: KContext , k: KFunction ) -> c.int  ---
-	pushboolean :: proc (L: ^State , b: c.bool ) ---
-	pushcclosure :: proc (L: ^State , fn: CFunction, n:c.int) ---
-	pushinteger :: proc (L: ^State , n: Integer ) ---
-	pushlightuserdata :: proc (L: ^State , p: rawptr) ---
-	pushlstring :: proc (L: ^State , s: cstring, len: c.ptrdiff_t) -> cstring ---
-	pushnil :: proc (L: ^State ) ---
-	pushnumber :: proc (L: ^State ,  n: Number) ---
-	
-	pushthread :: proc (L: ^State ) -> c.int ---
-	pushvalue :: proc (L: ^State , idx:c.int ) ---
-	rawequal :: proc (L: ^State ,  idx1: c.int,  idx2: c.int) -> c.int ---
-	rawget :: proc (L: ^State , idx: c.int ) -> c.int ---
-	rawgeti :: proc (L: ^State , idx: c.int , n: Integer) -> c.int ---
-	rawgetp :: proc (L: ^State , idx: c.int , p: rawptr) -> c.int ---
-	rawlen :: proc (L: ^State , idx: c.int ) -> c.ptrdiff_t ---
-	rawset :: proc (L: ^State , idx: c.int ) ---
-	rawseti :: proc (L: ^State , idx: c.int , n: Integer) ---
-	rawsetp :: proc (L: ^State , idx: c.int , p: rawptr) ---
-	resume :: proc (L: ^State , from: ^State, narg: c.int) -> c.int ---
-	rotate :: proc (L: ^State , idx:c.int , n:c.int) ---
-	setallocf :: proc (L: ^State , f: Alloc , ud: rawptr ) ---
-	setfield :: proc (L: ^State , idx: c.int , k: cstring) ---
-	setglobal :: proc (L: ^State , name: cstring) ---
-	sethook :: proc (L: ^State , func: Hook , mask: c.int, count: c.int ) ---
-	seti :: proc (L: ^State , idx: c.int , n: Integer) ---
-	setlocal :: proc (L: ^State , ar: ^Debug , n: c.int) -> cstring ---
-	setmetatable :: proc (L: ^State , objindex: c.int ) -> c.int ---
-	settable :: proc (L: ^State , idx: c.int ) ---
-	settop :: proc (L: ^State , idx:c.int ) ---
-	setupvalue :: proc (L: ^State , funcindex: c.int , n: c.int) -> cstring ---
-	setuservalue :: proc (L: ^State , idx: c.int ) ---
-	status :: proc (L: ^State ) -> c.int ---
-	stringtonumber :: proc (L: ^State , s: cstring) -> c.ptrdiff_t ---
-	toboolean :: proc (L: ^State , idx: c.int ) -> c.int ---
-	tocfunction :: proc (L: ^State , idx: c.int ) -> CFunction ---
-	tointegerx :: proc (L: ^State , idx: c.int , isnum: ^c.int) -> Integer ---
-	tolstring :: proc (L: ^State , idx: c.int , len: ^c.ptrdiff_t) -> cstring ---
-	tonumberx :: proc (L: ^State , idx: c.int , isnum: ^c.int) -> Number ---
-	topointer :: proc (L: ^State , idx: c.int ) -> rawptr ---
-	tothread :: proc (L: ^State , idx: c.int ) -> ^State ---
-	touserdata :: proc (L: ^State , idx: c.int ) -> rawptr ---
-	typename :: proc (L: ^State , tp: c.int ) -> cstring ---
-	upvalueid :: proc (L: ^State , fidx: c.int, n: c.int) -> rawptr ---
-	upvaluejoin :: proc (L: ^State , fidx1: c.int, n1: c.int, fidx2: c.int, n2: c.int) ---
-	version :: proc (L: ^State ) -> ^Number ---
-	xmove :: proc (from: ^State, to: ^State, n:c.int) ---
-	yieldk :: proc (L: ^State , nresults: c.int, ctx: KContext, k: KFunction ) -> c.int ---
-
-	// Odinify
-	@(link_name = "lua_pushstring")
-	pushcstring :: proc (L: ^State , s: cstring) -> cstring ---
-
-	type :: proc (L: ^State , idx: c.int ) -> c.int ---
+@private 
+DIGITS :: [?]string {
+	0 = "0",
+	1 = "1",
+	2 = "2", 
+	3 = "3",
+	4 = "4",
+	5 = "5",
+	6 = "6",
+	7 = "7",
+	8 = "8",
+	9 = "9",
 }
 
-/*
-	CONSTANTS
-*/
-VERSION_MAJOR ::	"5"
-VERSION_MINOR ::	"3"
-VERSION_NUM ::		503
-VERSION_RELEASE ::	"5"
+JIT_ENABLED :: #config(LUA_JIT, false)
+OVERRIDE_LIB :: #config(LUA_OVERRIDE_LIB, false)
+when  JIT_ENABLED {
+	MAJOR_VERSION :: 5
+	MINOR_VERSION :: 1
+	RELEASE_VERSION :: 4
+} else {
+	MAJOR_VERSION :: #config(LUA_MAJOR, 5)
+	MINOR_VERSION :: #config(LUA_MINOR, 4)
+	RELEASE_VERSION :: #config(LUA_RELEASE, 2)
+}
 
+when OVERRIDE_LIB {
+	when os.OS == .Windows do foreign import liblua "lualib:lua.lib" 
+	else do foreign import liblua "lualib:lua"
+} else {
+	when os.OS == .Windows do foreign import liblua "windows/lua542.lib"
+	when os.OS == .Linux do foreign import liblua "system:lua"
+	when os.OS == .Darwin do foreign import liblua "system:lua"
+}
+
+
+VERSION_MAJOR :: DIGITS[MAJOR_VERSION]
+VERSION_MINOR :: DIGITS[MINOR_VERSION]
+VERSION_RELEASE ::	DIGITS[RELEASE_VERSION]
+VERSION_NUM :: MAJOR_VERSION * 100 + MINOR_VERSION
 VERSION ::	"Lua " + VERSION_MAJOR + "." + VERSION_MINOR
 RELEASE ::	VERSION + "." + VERSION_RELEASE
+
 COPYRIGHT ::	RELEASE + "  Copyright (C) 1994-2018 Lua.org, PUC-Rio"
 AUTHORS ::	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
 
@@ -248,6 +174,114 @@ Debug :: struct {
 	/* private part */
 	i_ci : ^CallInfo ,  
 }
+
+
+
+
+
+
+@(default_calling_convention = "c")
+@(link_prefix = "lua_")
+foreign liblua {
+	// lua_pushfstring :: proc (L: ^State , fmt: cstring , ...) -> cstring ---;
+	// lua_pushvfstring :: proc (L: ^State , fmt: cstring , va_list argp) -> cstring ---;
+
+	absindex :: proc (L: ^State , idx: c.int ) -> c.int ---
+	arith :: proc (L: ^State , op: c.int ) ---
+	atpanic :: proc (L: ^State ,  panicf: CFunction) -> CFunction ---
+	callk :: proc (L: ^State , nargs: c.int, nresults: c.int, ctx: KContext , k: KFunction ) ---
+	checkstack :: proc (L: ^State , n: c.int ) -> c.int ---
+	close :: proc (L: ^State ) ---
+	compare :: proc (L: ^State ,  idx1: c.int,  idx2: c.int,  op: c.int) -> c.int ---
+	concat :: proc (L: ^State , n: c.int) ---
+	copy :: proc (L: ^State , fromidx: c.int , toidx: c.int ) ---
+	createtable :: proc (L: ^State , narr: c.int , nrec: c.int ) ---
+	dump :: proc (L: ^State , writer: Writer , data: rawptr, strip:c.int) -> c.int ---
+	error :: proc (L: ^State ) -> c.int ---
+	gc :: proc (L: ^State , what: c.int, data: c.int) -> c.int ---
+	getallocf :: proc (L: ^State , ud: ^rawptr ) -> c.int ---
+	getfield :: proc (L: ^State , idx: c.int , k: cstring) -> c.int ---
+	getglobal :: proc (L: ^State , name: cstring) -> c.int ---
+	gethook :: proc (L: ^State ) -> Hook ---
+	gethookcount :: proc(L: ^State ) -> c.int ---
+	gethookmask :: proc (L: ^State ) -> c.int ---
+	geti :: proc (L: ^State , idx: c.int , n: Integer) -> c.int ---
+	getinfo :: proc (L: ^State , what: cstring, ar: ^Debug ) -> c.int ---
+	getlocal :: proc (L: ^State , ar: ^Debug , n: c.int) -> cstring ---
+	getmetatable :: proc (L: ^State , objindex:c.int ) -> c.int ---
+	getstack :: proc (L: ^State ,  level: c.int, ar: ^Debug) -> c.int --- 
+	gettable :: proc (L: ^State , idx: c.int ) -> c.int ---
+	gettop :: proc (L: ^State ) -> c.int ---
+	getupvalue :: proc (L: ^State , funcindex: c.int , n: c.int) -> cstring ---
+	getuservalue :: proc (L: ^State , idx: c.int ) -> c.int ---
+	iscfunction :: proc (L: ^State , idx: c.int ) -> c.int ---
+	isinteger :: proc (L: ^State , idx: c.int ) -> c.int ---
+	isnumber :: proc (L: ^State , idx: c.int ) -> c.int ---
+	isstring :: proc (L: ^State , idx: c.int ) -> c.int ---
+	isuserdata :: proc (L: ^State , idx: c.int ) -> c.int ---
+	isyieldable :: proc (L: ^State ) -> c.int ---
+	len :: proc (L: ^State , idx: c.int) ---
+	load :: proc (L: ^State , reader: Reader, dt: rawptr, chunkname: cstring, mode: cstring) -> c.int --- 
+	newstate :: proc (f: Alloc, ud :rawptr) -> ^State ---
+	newthread :: proc (L: ^State ) -> ^State ---
+	newuserdatauv :: proc (L: ^State, sz: c.ptrdiff_t, nuvalue: c.int) -> rawptr ---
+	next :: proc (L: ^State , idx: c.int) -> c.int ---
+	pcallk :: proc (L: ^State , nargs: c.int, nresults: c.int, errfunc: c.int, ctx: KContext , k: KFunction ) -> c.int  ---
+	pushboolean :: proc (L: ^State , b: c.bool ) ---
+	pushcclosure :: proc (L: ^State , fn: CFunction, n:c.int) ---
+	pushinteger :: proc (L: ^State , n: Integer ) ---
+	pushlightuserdata :: proc (L: ^State , p: rawptr) ---
+	pushlstring :: proc (L: ^State , s: cstring, len: c.ptrdiff_t) -> cstring ---
+	pushnil :: proc (L: ^State ) ---
+	pushnumber :: proc (L: ^State ,  n: Number) ---
+	
+	pushthread :: proc (L: ^State ) -> c.int ---
+	pushvalue :: proc (L: ^State , idx:c.int ) ---
+	rawequal :: proc (L: ^State ,  idx1: c.int,  idx2: c.int) -> c.int ---
+	rawget :: proc (L: ^State , idx: c.int ) -> c.int ---
+	rawgeti :: proc (L: ^State , idx: c.int , n: Integer) -> c.int ---
+	rawgetp :: proc (L: ^State , idx: c.int , p: rawptr) -> c.int ---
+	rawlen :: proc (L: ^State , idx: c.int ) -> c.ptrdiff_t ---
+	rawset :: proc (L: ^State , idx: c.int ) ---
+	rawseti :: proc (L: ^State , idx: c.int , n: Integer) ---
+	rawsetp :: proc (L: ^State , idx: c.int , p: rawptr) ---
+	resume :: proc (L: ^State , from: ^State, narg: c.int) -> c.int ---
+	rotate :: proc (L: ^State , idx:c.int , n:c.int) ---
+	setallocf :: proc (L: ^State , f: Alloc , ud: rawptr ) ---
+	setfield :: proc (L: ^State , idx: c.int , k: cstring) ---
+	setglobal :: proc (L: ^State , name: cstring) ---
+	sethook :: proc (L: ^State , func: Hook , mask: c.int, count: c.int ) ---
+	seti :: proc (L: ^State , idx: c.int , n: Integer) ---
+	setlocal :: proc (L: ^State , ar: ^Debug , n: c.int) -> cstring ---
+	setmetatable :: proc (L: ^State , objindex: c.int ) -> c.int ---
+	settable :: proc (L: ^State , idx: c.int ) ---
+	settop :: proc (L: ^State , idx:c.int ) ---
+	setupvalue :: proc (L: ^State , funcindex: c.int , n: c.int) -> cstring ---
+	setuservalue :: proc (L: ^State , idx: c.int ) ---
+	status :: proc (L: ^State ) -> c.int ---
+	stringtonumber :: proc (L: ^State , s: cstring) -> c.ptrdiff_t ---
+	toboolean :: proc (L: ^State , idx: c.int ) -> c.int ---
+	tocfunction :: proc (L: ^State , idx: c.int ) -> CFunction ---
+	tointegerx :: proc (L: ^State , idx: c.int , isnum: ^c.int) -> Integer ---
+	tolstring :: proc (L: ^State , idx: c.int , len: ^c.ptrdiff_t) -> cstring ---
+	tonumberx :: proc (L: ^State , idx: c.int , isnum: ^c.int) -> Number ---
+	topointer :: proc (L: ^State , idx: c.int ) -> rawptr ---
+	tothread :: proc (L: ^State , idx: c.int ) -> ^State ---
+	touserdata :: proc (L: ^State , idx: c.int ) -> rawptr ---
+	typename :: proc (L: ^State , tp: c.int ) -> cstring ---
+	upvalueid :: proc (L: ^State , fidx: c.int, n: c.int) -> rawptr ---
+	upvaluejoin :: proc (L: ^State , fidx1: c.int, n1: c.int, fidx2: c.int, n2: c.int) ---
+	version :: proc (L: ^State ) -> ^Number ---
+	xmove :: proc (from: ^State, to: ^State, n:c.int) ---
+	yieldk :: proc (L: ^State , nresults: c.int, ctx: KContext, k: KFunction ) -> c.int ---
+
+	// Odinify
+	@(link_name = "lua_pushstring")
+	pushcstring :: proc (L: ^State , s: cstring) -> cstring ---
+
+	type :: proc (L: ^State , idx: c.int ) -> c.int ---
+}
+
 
 /*
 	MACROS
