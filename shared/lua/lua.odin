@@ -66,7 +66,7 @@ Integer :: INTEGER
 Unsigned :: UNSIGNED
 KContext :: KCONTEXT
 
-REGISTRYINDEX :: (-MAXSTACK - 1000)
+when !JIT_ENABLED { REGISTRYINDEX :: (-MAXSTACK - 1000) }
 
 OK 			:: 0
 YIELD 		:: 1
@@ -201,7 +201,7 @@ foreign liblua {
 	gc :: proc (L: ^State , what: c.int, data: c.int) -> c.int ---
 	getallocf :: proc (L: ^State , ud: ^rawptr ) -> c.int ---
 	getfield :: proc (L: ^State , idx: c.int , k: cstring) -> c.int ---
-	getglobal :: proc (L: ^State , name: cstring) -> c.int ---
+
 	gethook :: proc (L: ^State ) -> Hook ---
 	gethookcount :: proc(L: ^State ) -> c.int ---
 	gethookmask :: proc (L: ^State ) -> c.int ---
@@ -249,7 +249,7 @@ foreign liblua {
 	rotate :: proc (L: ^State , idx:c.int , n:c.int) ---
 	setallocf :: proc (L: ^State , f: Alloc , ud: rawptr ) ---
 	setfield :: proc (L: ^State , idx: c.int , k: cstring) ---
-	setglobal :: proc (L: ^State , name: cstring) ---
+
 	sethook :: proc (L: ^State , func: Hook , mask: c.int, count: c.int ) ---
 	seti :: proc (L: ^State , idx: c.int , n: Integer) ---
 	setlocal :: proc (L: ^State , ar: ^Debug , n: c.int) -> cstring ---
@@ -278,6 +278,11 @@ foreign liblua {
 	// Odinify
 	@(link_name = "lua_pushstring")
 	pushcstring :: proc (L: ^State , s: cstring) -> cstring ---
+
+	@(link_name = "lua_getglobal")
+	lua_getglobal :: proc (L: ^State , name: cstring) -> c.int ---
+	@(link_name = "lua_setglobal")
+	lua_setglobal :: proc (L: ^State , name: cstring) ---
 
 	type :: proc (L: ^State , idx: c.int ) -> c.int ---
 }
@@ -317,8 +322,8 @@ newtable :: proc "c" (L: ^State)
 
 register :: proc "c" (L: ^State, n: cstring, f: CFunction )
 {
- 	pushcfunction(L, (f))
- 	setglobal(L, (n))
+	pushcfunction(L, (f))
+	setglobal(L, (n))
 }
 
 pushcfunction :: proc "c" (L: ^State, f: CFunction )
@@ -428,4 +433,15 @@ pushstring :: proc "c" (L: ^State, str: string) {
 	strings.write_byte(&sb, 0) // make it null terminated
 	cstr := strings.unsafe_string_to_cstring(strings.to_string(sb))
 	pushcstring(L, cstr)
+}
+
+/*
+	New macro implementations for LuaJIT compatibility
+*/
+when JIT_ENABLED {
+	setglobal :: jit_setglobal
+	getglobal :: jit_getglobal
+} else {
+	setglobal :: lua_setglobal
+	getglobal :: lua_getglobal
 }
