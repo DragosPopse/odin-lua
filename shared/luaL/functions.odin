@@ -1,18 +1,17 @@
 package luaL
 
-import "core:os"
 import "core:c"
 
 import lua "../lua"
 
-when lua.OVERRIDE_LIB {
-	when os.OS == .Windows do foreign import liblua "lualib:lua.lib" 
+// Note(Dragos): This should be ODIN_OS
+when OVERRIDE_LIB {
+	when ODIN_OS == .Windows do foreign import liblua "lualib:lua.lib" 
 	else do foreign import liblua "lualib:lua"
 } else {
-// Note(Dragos): This should be made more generic
-	when os.OS == .Windows do foreign import liblua "../lua/windows/lua542.lib"
-	when os.OS == .Linux do foreign import liblua "system:lua"
-	when os.OS == .Darwin do foreign import liblua "system:lua"
+	when ODIN_OS == .Windows do foreign import liblua "windows/lua542.lib"
+	when ODIN_OS == .Linux do foreign import liblua "system:lua"
+	when ODIN_OS == .Darwin do foreign import liblua "system:lua"
 }
 
 
@@ -64,40 +63,6 @@ foreign liblua {
 	_where :: proc (L: ^lua.State , lvl: c.int ) ---
 }
 
-/*
-	CONSTANTS
-*/
-
-
-
-
-
-NUMSIZES :: (size_of(lua.Integer)*16 + size_of(lua.Number))
-
-/*
-	TYPES
-*/
-
-
-// lua_ident: ^u8
-
-Reg :: struct {
-	name: cstring,
-	func: lua.CFunction,
-}
-
-
-
-/*
-	MACROS
-*/
-
-// lua_getextraspace :: proc (L: ^lua.State )
-// {
-// 	(cast(rawptr)(cast(^i8)c.ptrdiff_t(L) - LUA_EXTRASPACE));
-// }	
-
-
 loadfile :: proc "c" (L: ^lua.State, f: cstring) -> c.int {
 	return loadfilex(L, f, nil)
 }
@@ -106,28 +71,9 @@ checkversion :: proc (L: ^lua.State) {
 	checkversion_(L, lua.VERSION_NUM, NUMSIZES)
 }
 
-// luaL_newlibtable :: proc (L:^ lua.State,l: ^luaL_Reg)
-// {
-// 	lua_createtable(L, 0, size_of(l)/size_of((l)[0]) - 1);
-// }
-
-// luaL_newlib :: proc (L:^ lua.State,l: ^luaL_Reg )
-// {
-// 	luaL_checkversion(L);
-// 	luaL_newlibtable(L,l);
-// 	luaL_setfuncs(L,l,0);
-// }
-
-// luaL_argcheck :: (L:^ lua.State, cond,arg,extramsg)	\
-// 		((void)((cond) || luaL_argerror(L, (arg), (extramsg))))
-
 checkstring :: proc "c" (L: ^lua.State, n: c.int) -> string {
 	return cast(string)checklstring(L, n, nil)
 }
-// luaL_optstring :: (L:^ lua.State,n,d)	(luaL_optlstring(L, (n), (d), NULL))
-
-// luaL_typename :: (L:^ lua.State,i)	lua_typename(L, lua_type(L,(i)))
-
 
 dofile :: proc "c" (L:^ lua.State, fn: cstring) -> (err: c.int) {
 	err = loadfile(L, fn)
@@ -149,3 +95,27 @@ getmetatable :: proc "c" (L:^ lua.State, n:cstring) {
 
 // luaL_opt :: (L:^ lua.State,f,n,d)	(lua_isnoneornil(L,(n)) ? (d) : f(L,(n)))
 // luaL_loadbuffer :: (L:^ lua.State,s,sz,n)	luaL_loadbufferx(L,s,sz,n,NULL)
+
+// luaL_newlibtable :: proc (L:^ lua.State,l: ^luaL_Reg)
+// {
+// 	lua_createtable(L, 0, size_of(l)/size_of((l)[0]) - 1);
+// }
+
+// luaL_newlib :: proc (L:^ lua.State,l: ^luaL_Reg )
+// {
+// 	luaL_checkversion(L);
+// 	luaL_newlibtable(L,l);
+// 	luaL_setfuncs(L,l,0);
+// }
+
+// luaL_argcheck :: (L:^ lua.State, cond,arg,extramsg)	\
+// 		((void)((cond) || luaL_argerror(L, (arg), (extramsg))))
+
+
+// luaL_optstring :: (L:^ lua.State,n,d)	(luaL_optlstring(L, (n), (d), NULL))
+
+// luaL_typename :: (L:^ lua.State,i)	lua_typename(L, lua_type(L,(i)))
+
+// lua_getextraspace :: proc (L: ^lua.State ) {
+// 	(cast(rawptr)(cast(^i8)c.ptrdiff_t(L) - LUA_EXTRASPACE));
+// }

@@ -1,184 +1,16 @@
 package lua
 
-import "core:os"
-import "core:c"
-import "core:strings" // see pushstring
-
-@private 
-DIGITS :: [?]string {
-	0 = "0",
-	1 = "1",
-	2 = "2", 
-	3 = "3",
-	4 = "4",
-	5 = "5",
-	6 = "6",
-	7 = "7",
-	8 = "8",
-	9 = "9",
-}
-
-JIT_ENABLED :: #config(LUA_JIT, false)
-OVERRIDE_LIB :: #config(LUA_OVERRIDE_LIB, false)
-when  JIT_ENABLED {
-	MAJOR_VERSION :: 5
-	MINOR_VERSION :: 1
-	RELEASE_VERSION :: 4
-} else {
-	MAJOR_VERSION :: #config(LUA_MAJOR, 5)
-	MINOR_VERSION :: #config(LUA_MINOR, 4)
-	RELEASE_VERSION :: #config(LUA_RELEASE, 2)
-}
+import "core:c" 
+import "core:strings"
 
 when OVERRIDE_LIB {
-	when os.OS == .Windows do foreign import liblua "lualib:lua.lib" 
+	when ODIN_OS == .Windows do foreign import liblua "lualib:lua.lib" 
 	else do foreign import liblua "lualib:lua"
 } else {
-	when os.OS == .Windows do foreign import liblua "windows/lua542.lib"
-	when os.OS == .Linux do foreign import liblua "system:lua"
-	when os.OS == .Darwin do foreign import liblua "system:lua"
+	when ODIN_OS == .Windows do foreign import liblua "windows/lua542.lib"
+	when ODIN_OS == .Linux do foreign import liblua "system:lua"
+	when ODIN_OS == .Darwin do foreign import liblua "system:lua"
 }
-
-
-VERSION_MAJOR :: DIGITS[MAJOR_VERSION]
-VERSION_MINOR :: DIGITS[MINOR_VERSION]
-VERSION_RELEASE ::	DIGITS[RELEASE_VERSION]
-VERSION_NUM :: MAJOR_VERSION * 100 + MINOR_VERSION
-VERSION ::	"Lua " + VERSION_MAJOR + "." + VERSION_MINOR
-RELEASE ::	VERSION + "." + VERSION_RELEASE
-
-COPYRIGHT ::	RELEASE + "  Copyright (C) 1994-2018 Lua.org, PUC-Rio"
-AUTHORS ::	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
-
-SIGNATURE :: "\x1bLua"
-MULTRET	:: (-1)
-
-NUMBER :: c.double
-INTEGER :: c.longlong
-KCONTEXT :: c.ptrdiff_t
-IDSIZE :: 60
-UNSIGNED :: u64
-MAXSTACK :: 1000000
-EXTRASPACE :: size_of(rawptr)
-
-Number :: NUMBER
-Integer :: INTEGER
-Unsigned :: UNSIGNED
-KContext :: KCONTEXT
-
-when !JIT_ENABLED { REGISTRYINDEX :: (-MAXSTACK - 1000) }
-
-OK 			:: 0
-YIELD 		:: 1
-ERRRUN 		:: 2
-ERRSYNTAX 	:: 3
-ERRMEM 		:: 4
-ERRGCMM 	:: 5
-ERRERR 		:: 6
-
-TNONE 				::	(-1)
-TNIL 				::	0
-TBOOLEAN 			::	1
-TLIGHTUSERDATA 		::	2
-TNUMBER 			::	3
-TSTRING 			::	4
-TTABLE 				::	5
-TFUNCTION 			::	6
-TUSERDATA 			::	7
-TTHREAD 			::	8
-NUMTAGS 			::	9
-MINSTACK 			::	20
-
-RIDX_MAINTHREAD 		::	1
-RIDX_GLOBALS 			::	2
-RIDX_LAST 				:: RIDX_GLOBALS
-OPADD :: 0
-OPSUB :: 1
-OPMUL :: 2
-OPMOD :: 3
-OPPOW :: 4
-OPDIV :: 5
-OPIDIV :: 6
-OPBAND :: 7
-OPBOR :: 8
-OPBXOR :: 9
-OPSHL :: 10
-OPSHR :: 11
-OPUNM :: 12
-OPBNOT :: 13
-
-OPEQ ::	0
-OPLT ::	1
-OPLE ::	2
-
-GCSTOP 			:: 0
-GCRESTART 		:: 1
-GCCOLLECT 		:: 2
-GCCOUNT 		:: 3
-GCCOUNTB 		:: 4
-GCSTEP 			:: 5
-GCSETPAUSE 		:: 6
-GCSETSTEPMUL	:: 7
-GCISRUNNING 	:: 9
-
-HOOKCALL 		:: 0
-HOOKRET 		:: 1
-HOOKLINE 		:: 2
-HOOKCOUNT 		:: 3
-HOOKTAILCALL 	:: 4
-
-MASKCALL :: (1 << HOOKCALL)
-MASKRET :: (1 << HOOKRET)
-MASKLINE :: (1 << HOOKLINE)
-MASKCOUNT :: (1 << HOOKCOUNT)
-
-ERRFILE :: (ERRERR+1)
-LOADED_TABLE :: "_LOADED"
-PRELOAD_TABLE :: "_PRELOAD"
-
-
-NOREF :: -2
-REFNIL :: -1
-
-/*
-	TYPES
-*/
-CFunction :: #type proc "c" (L: ^State ) -> c.int
-KFunction :: #type proc "c" (L: ^State , status: c.int , ctx:KContext) -> c.int
-Reader :: #type proc "c" (L: ^State , ud: rawptr , sz: ^c.ptrdiff_t) -> cstring
-Writer :: #type proc "c" (L: ^State , p: cstring, sz:c.ptrdiff_t , ud:rawptr) -> c.int 
-Hook :: #type proc "c" (L: ^State , ar: ^Debug )
-Alloc :: #type proc "c" (ud: rawptr, ptr: rawptr, osize:c.ptrdiff_t, nsize:c.ptrdiff_t) -> rawptr
-
-// lua_ident: ^u8;
-
-State :: struct{}
-
-
-CallInfo :: struct {}
-
-Debug :: struct {
-	event : c.int,
-	name : cstring,	
-	namewhat: cstring,
-	what: cstring,
-	source: cstring,
-	currentline: c.int ,
-	linedefined: c.int ,	
-	lastlinedefined: c.int ,
-	nups: u8,	
-	nparams: u8,
-	isvararg: i8,
-	istailcall: i8,
-	short_src: [IDSIZE]i8,
-	/* private part */
-	i_ci : ^CallInfo ,  
-}
-
-
-
-
-
 
 @(default_calling_convention = "c")
 @(link_prefix = "lua_")
@@ -302,17 +134,15 @@ newuserdata :: proc "c" (L: ^State, sz: c.ptrdiff_t) -> rawptr {
 	return newuserdatauv(L, sz, 1)
 }
 
-tonumber :: proc "c" (L: ^State, i: c.int) -> Number
-{
+tonumber :: proc "c" (L: ^State, i: c.int) -> Number {
 	return Number( tonumberx(L,(i),nil) )
 }	
 
-tointeger :: proc "c" (L: ^State ,i: c.int) -> Integer
-{
+tointeger :: proc "c" (L: ^State, i: c.int) -> Integer {
 	return Integer( tointegerx(L,(i),nil) )
 }
-pop :: proc "c" (L: ^State ,n: c.int )
-{
+
+pop :: proc "c" (L: ^State, n: c.int ) {
 	settop(L, -(n)-1)
 }		
 
@@ -321,95 +151,78 @@ newtable :: proc "c" (L: ^State)
 	createtable(L, 0, 0)
 }
 
-register :: proc "c" (L: ^State, n: cstring, f: CFunction )
-{
+register :: proc "c" (L: ^State, n: cstring, f: CFunction ) {
 	pushcfunction(L, (f))
 	setglobal(L, (n))
 }
 
-pushcfunction :: proc "c" (L: ^State, f: CFunction )
-{
+pushcfunction :: proc "c" (L: ^State, f: CFunction ) {
 	pushcclosure(L, (f), 0)
 }	
 
-isfunction :: proc "c" (L: ^State, n: c.int) -> c.bool 
-{
+isfunction :: proc "c" (L: ^State, n: c.int) -> c.bool {
 	return (type(L, (n)) == TFUNCTION)
 }	
 
-istable :: proc "c" (L: ^State, n:c.int) -> c.bool
-{
+istable :: proc "c" (L: ^State, n:c.int) -> c.bool {
 	return (type(L, (n)) == TTABLE)
 }
 
-islightuserdata :: proc "c" (L: ^State, n:c.int) -> c.bool
-{	
+islightuserdata :: proc "c" (L: ^State, n:c.int) -> c.bool {	
 	return (type(L, (n)) == TLIGHTUSERDATA)
 }
-isnil :: proc "c" (L: ^State, n:c.int ) -> c.bool
-{
+
+isnil :: proc "c" (L: ^State, n:c.int ) -> c.bool {
 	return (type(L, (n)) == TNIL)
 }
 
-isboolean :: proc "c" (L: ^State, n: c.int ) -> c.bool
-{
+isboolean :: proc "c" (L: ^State, n: c.int ) -> c.bool {
 	return (type(L, (n)) == TBOOLEAN)
 }	
 
-isthread :: proc "c" (L: ^State, n: c.int) -> c.bool
-{
+isthread :: proc "c" (L: ^State, n: c.int) -> c.bool {
 	return (type(L, (n)) == TTHREAD)
 }
 
-isnone :: proc "c" (L: ^State, n: c.int) -> c.bool
-{
+isnone :: proc "c" (L: ^State, n: c.int) -> c.bool {
 	return (type(L, (n)) == TNONE)
 }
 	
-isnoneornil :: proc "c" (L: ^State, n:c.int) -> c.bool
-{
+isnoneornil :: proc "c" (L: ^State, n:c.int) -> c.bool {
 	return (type(L, (n)) <= 0)
 }
 
-pushliteral :: proc "c" (L: ^State, s:cstring)	
-{
+pushliteral :: proc "c" (L: ^State, s:cstring) {
 	pushcstring(L, s)
 }
 
-pushglobaltable :: proc "c" (L: ^State)
-{
+pushglobaltable :: proc "c" (L: ^State) {
 	rawgeti(L, REGISTRYINDEX, RIDX_GLOBALS)
 } 
 	
-tostring :: proc "c" (L: ^State, i: c.int) -> string
-{
-	return string( tolstring(L, (i), nil) )
+tostring :: proc "c" (L: ^State, i: c.int) -> string {
+	return string( tolstring(L, (i), nil) ) 
 }	
 
-insert :: proc "c" (L: ^State, idx:c.int)
-{
+insert :: proc "c" (L: ^State, idx:c.int) {
 	rotate(L, (idx), 1)
 }	
 
-remove :: proc "c" (L: ^State, idx: c.int)
-{	
+remove :: proc "c" (L: ^State, idx: c.int) {	
 	rotate(L, (idx), -1)
 	pop(L, 1)
 }
 
-replace :: proc "c" (L: ^State, idx: c.int)	
-{
+replace :: proc "c" (L: ^State, idx: c.int)	{
 	copy(L, -1, (idx))
 	pop(L, 1)
 }
 
-yield :: proc "c" (L : ^State, n: c.int)
-{
+yield :: proc "c" (L : ^State, n: c.int) {
 	yieldk(L, (n), 0, nil)
 }		
 
-call :: proc "c" (L: ^State, n: c.int, r: c.int)
-{
+call :: proc "c" (L: ^State, n: c.int, r: c.int) {
 	callk(L, (n), (r), 0, nil)
 }
 
@@ -422,7 +235,7 @@ upvalueindex :: proc "c" (i: c.int) -> c.int {
 }
 
 
-MAX_ODIN_STRLEN :: #config(LUA_MAX_ODIN_STRLEN, 256)
+
 @(private = "file")
 _odin_string_backing: [MAX_ODIN_STRLEN]byte 
 
