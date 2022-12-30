@@ -279,10 +279,11 @@ foreign liblua {
 	@(link_name = "lua_pushstring")
 	pushcstring :: proc (L: ^State , s: cstring) -> cstring ---
 
-	@(link_name = "lua_getglobal")
-	lua_getglobal :: proc (L: ^State , name: cstring) -> c.int ---
-	@(link_name = "lua_setglobal")
-	lua_setglobal :: proc (L: ^State , name: cstring) ---
+	when !JIT_ENABLED {
+		getglobal :: proc (L: ^State , name: cstring) -> c.int ---
+		setglobal :: proc (L: ^State , name: cstring) ---
+	}
+	
 
 	type :: proc (L: ^State , idx: c.int ) -> c.int ---
 }
@@ -441,7 +442,4 @@ pushstring :: proc "c" (L: ^State, str: string) {
 when JIT_ENABLED {
 	setglobal :: jit_setglobal
 	getglobal :: jit_getglobal
-} else {
-	setglobal :: lua_setglobal
-	getglobal :: lua_getglobal
 }
