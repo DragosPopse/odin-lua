@@ -50,10 +50,31 @@ foreign liblua {
 	unref :: proc "c" (L: ^lua.State, t: c.int, ref: c.int) ---
 	requiref :: proc (L: ^lua.State , modname: cstring, openf: lua.CFunction , glb: c.int ) ---
 	setfuncs :: proc (L: ^lua.State , l: ^Reg, nup: c.int ) --- 
-	setmetatable :: proc (L: ^lua.State , tname: cstring) ---
-	testudata :: proc (L: ^lua.State , ud: c.int , tname: cstring) -> rawptr ---
-	tolstring :: proc (L: ^lua.State , idx: c.int , len: ^c.ptrdiff_t) -> cstring ---
+	
+	
+	
 	traceback :: proc (L: ^lua.State , L1: ^lua.State ,msg: cstring, level: c.int ) ---
+
+  
+
+    when VERSION_NUM >= 501 {
+
+    }
+
+    when VERSION_NUM >= 502 {
+        setmetatable :: proc (L: ^lua.State , tname: cstring) ---
+        tolstring :: proc (L: ^lua.State , idx: c.int , len: ^c.ptrdiff_t) -> cstring ---
+        testudata :: proc (L: ^lua.State , ud: c.int , tname: cstring) -> rawptr ---
+    }
+
+    when VERSION_NUM >= 503 {
+       
+    }
+
+    when VERSION_NUM >= 504 {
+
+    }
+
 }
 
 @(default_calling_convention = "c")
