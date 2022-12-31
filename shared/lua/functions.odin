@@ -89,7 +89,6 @@ foreign liblua {
 	
 	toboolean :: proc (L: ^State , idx: c.int ) -> c.int ---
 	tocfunction :: proc (L: ^State , idx: c.int ) -> CFunction ---
-	tointegerx :: proc (L: ^State , idx: c.int , isnum: ^c.int) -> Integer ---
 	tolstring :: proc (L: ^State , idx: c.int , len: ^c.ptrdiff_t) -> cstring ---
 	tonumberx :: proc (L: ^State , idx: c.int , isnum: ^c.int) -> Number ---
 	topointer :: proc (L: ^State , idx: c.int ) -> rawptr ---
@@ -139,6 +138,7 @@ foreign liblua {
         isyieldable :: proc (L: ^State ) -> c.int ---
         rotate :: proc (L: ^State , idx:c.int , n:c.int) ---
         stringtonumber :: proc (L: ^State , s: cstring) -> c.ptrdiff_t ---
+        tointegerx :: proc (L: ^State , idx: c.int , isnum: ^c.int) -> Integer ---
     }
 
     when VERSION_NUM >= 504 {
@@ -165,7 +165,13 @@ tonumber :: proc "c" (L: ^State, i: c.int) -> Number {
 }	
 
 tointeger :: proc "c" (L: ^State, i: c.int) -> Integer {
-	return Integer( tointegerx(L,(i),nil) )
+    when VERSION_NUM >= 503 {
+        return cast(Integer)tointegerx(L, i, nil)
+    }
+	else { // Integers not supported. Emulate them
+        result := tonumber(L, i) 
+        return cast(Integer)result 
+    }
 }
 
 pop :: proc "c" (L: ^State, n: c.int ) {

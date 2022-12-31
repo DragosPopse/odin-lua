@@ -84,6 +84,31 @@ foreign liblua {
 	_where :: proc (L: ^lua.State , lvl: c.int ) ---
 }
 
+// These functions are available in newer APIs, so we can implement them ourselves
+when VERSION_NUM < 502 {
+    setmetatable :: proc (L: ^lua.State , tname: cstring) {
+        getmetatable(L, tname)
+        lua.setmetatable(L, -2)
+    }
+
+    testudata :: proc (L: ^lua.State , ud: c.int , tname: cstring) -> rawptr {
+        udata := lua.touserdata(L, ud)
+        if udata != nil {
+            meta := lua.getmetatable(L, ud) 
+            if meta != 0 {
+                getmetatable(L, tname)
+                if !lua.rawequal(L, -1, -2) {
+                    udata = nil 
+                }
+                lua.pop(L, 2)
+                return udata 
+            }
+        }
+
+        return nil
+    }
+}
+
 loadfile :: proc "c" (L: ^lua.State, f: cstring) -> c.int {
 	return loadfilex(L, f, nil)
 }
