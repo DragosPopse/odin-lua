@@ -86,12 +86,12 @@ foreign liblua {
 
 // These functions are available in newer APIs, so we can implement them ourselves
 when VERSION_NUM < 502 {
-    setmetatable :: proc (L: ^lua.State , tname: cstring) {
+    setmetatable :: proc "c" (L: ^lua.State , tname: cstring) {
         getmetatable(L, tname)
         lua.setmetatable(L, -2)
     }
 
-    testudata :: proc (L: ^lua.State , ud: c.int , tname: cstring) -> rawptr {
+    testudata :: proc "c" (L: ^lua.State , ud: c.int , tname: cstring) -> rawptr {
         udata := lua.touserdata(L, ud)
         if udata != nil {
             meta := lua.getmetatable(L, ud) 
