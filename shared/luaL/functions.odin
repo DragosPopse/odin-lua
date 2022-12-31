@@ -9,7 +9,8 @@ when OVERRIDE_LIB {
 	when ODIN_OS == .Windows do foreign import liblua "lualib:lua.lib" 
 	else do foreign import liblua "lualib:lua"
 } else {
-	when ODIN_OS == .Windows do foreign import liblua "windows/lua542.lib"
+    when ODIN_OS == .Windows && JIT_ENABLED do foreign import liblua "..lua/windows/luajit.lib"
+	else when ODIN_OS == .Windows do foreign import liblua "../lua/windows/lua542.lib"
 	when ODIN_OS == .Linux do foreign import liblua "system:lua"
 	when ODIN_OS == .Darwin do foreign import liblua "system:lua"
 }
@@ -54,27 +55,6 @@ foreign liblua {
 	
 	
 	traceback :: proc (L: ^lua.State , L1: ^lua.State ,msg: cstring, level: c.int ) ---
-
-  
-
-    when VERSION_NUM >= 501 {
-
-    }
-
-    when VERSION_NUM >= 502 {
-        setmetatable :: proc (L: ^lua.State , tname: cstring) ---
-        tolstring :: proc (L: ^lua.State , idx: c.int , len: ^c.ptrdiff_t) -> cstring ---
-        testudata :: proc (L: ^lua.State , ud: c.int , tname: cstring) -> rawptr ---
-    }
-
-    when VERSION_NUM >= 503 {
-       
-    }
-
-    when VERSION_NUM >= 504 {
-
-    }
-
 }
 
 @(default_calling_convention = "c")
@@ -83,6 +63,8 @@ foreign liblua {
 	// Note(Dragos): Avoid clashes with keywords
 	_where :: proc (L: ^lua.State , lvl: c.int ) ---
 }
+
+
 
 // These functions are available in newer APIs, so we can implement them ourselves
 when VERSION_NUM < 502 {
@@ -106,6 +88,16 @@ when VERSION_NUM < 502 {
         }
 
         return nil
+    }
+}
+
+when VERSION_NUM >= 502 {
+    @(default_calling_convention = "c")
+    @(link_prefix = "luaL_")
+    foreign liblua {
+        setmetatable :: proc (L: ^lua.State , tname: cstring) ---
+        tolstring :: proc (L: ^lua.State , idx: c.int , len: ^c.ptrdiff_t) -> cstring ---
+        testudata :: proc (L: ^lua.State , ud: c.int , tname: cstring) -> rawptr ---
     }
 }
 

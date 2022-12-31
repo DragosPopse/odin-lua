@@ -7,7 +7,8 @@ when OVERRIDE_LIB {
 	when ODIN_OS == .Windows do foreign import liblua "lualib:lua.lib" 
 	else do foreign import liblua "lualib:lua"
 } else {
-	when ODIN_OS == .Windows do foreign import liblua "windows/lua542.lib"
+    when ODIN_OS == .Windows && JIT_ENABLED do foreign import liblua "windows/luajit.lib"
+	else when ODIN_OS == .Windows do foreign import liblua "windows/lua542.lib"
 	when ODIN_OS == .Linux do foreign import liblua "system:lua"
 	when ODIN_OS == .Darwin do foreign import liblua "system:lua"
 }
@@ -100,26 +101,43 @@ foreign liblua {
 	xmove :: proc (from: ^State, to: ^State, n:c.int) ---
 	yieldk :: proc (L: ^State , nresults: c.int, ctx: KContext, k: KFunction ) -> c.int ---
 
-	type :: proc (L: ^State , idx: c.int ) -> c.int ---
+	type :: proc (L: ^State , idx: c.int ) -> c.int --- 
+}
 
-    // pushing strings returns void in versions prior to 5.1
-    when VERSION_NUM <= 500 {
+when !JIT_ENABLED {
+    @(default_calling_convention = "c")
+    @(link_prefix = "lua_")
+    foreign liblua {
+        getglobal :: proc (L: ^State , name: cstring) -> c.int ---
+        setglobal :: proc (L: ^State , name: cstring) ---
+    }
+}
+
+when VERSION_NUM <= 500 {
+    @(default_calling_convention = "c")
+    @(link_prefix = "lua_")
+    foreign liblua {
         // Odinify
         @(link_name = "lua_pushstring")
         pushcstring :: proc (L: ^State , s: cstring) 
         pushlstring :: proc (L: ^State , s: cstring, len: c.ptrdiff_t)
-    } else {
-        // Odinify
+    }
+    
+} else {
+    @(default_calling_convention = "c")
+    @(link_prefix = "lua_")
+    foreign liblua {
         @(link_name = "lua_pushstring")
         pushcstring :: proc (L: ^State , s: cstring) -> cstring ---
         pushlstring :: proc (L: ^State , s: cstring, len: c.ptrdiff_t) -> cstring ---
+    
     }
+}
 
-    when VERSION_NUM >= 501 {
-
-    }
-
-    when VERSION_NUM >= 502 {
+when VERSION_NUM >= 502 {
+    @(default_calling_convention = "c")
+    @(link_prefix = "lua_")
+    foreign liblua {
         absindex :: proc (L: ^State , idx: c.int ) -> c.int ---
         arith :: proc (L: ^State , op: c.int ) ---
         compare :: proc (L: ^State ,  idx1: c.int,  idx2: c.int,  op: c.int) -> c.int ---
@@ -127,11 +145,15 @@ foreign liblua {
         rawgetp :: proc (L: ^State , idx: c.int , p: rawptr) -> c.int ---
         rawsetp :: proc (L: ^State , idx: c.int , p: rawptr) ---
         upvalueid :: proc (L: ^State , fidx: c.int, n: c.int) -> rawptr ---
-	    upvaluejoin :: proc (L: ^State , fidx1: c.int, n1: c.int, fidx2: c.int, n2: c.int) ---
+        upvaluejoin :: proc (L: ^State , fidx1: c.int, n1: c.int, fidx2: c.int, n2: c.int) ---
         version :: proc (L: ^State ) -> ^Number ---
     }
+}
 
-    when VERSION_NUM >= 503 {
+when VERSION_NUM >= 503 {
+    @(default_calling_convention = "c")
+    @(link_prefix = "lua_")
+    foreign liblua {
         dump :: proc (L: ^State , writer: Writer , data: rawptr, strip:c.int) -> c.int ---
         geti :: proc (L: ^State , idx: c.int , n: Integer) -> c.int ---
         seti :: proc (L: ^State , idx: c.int , n: Integer) ---
@@ -140,18 +162,6 @@ foreign liblua {
         stringtonumber :: proc (L: ^State , s: cstring) -> c.ptrdiff_t ---
         tointegerx :: proc (L: ^State , idx: c.int , isnum: ^c.int) -> Integer ---
     }
-
-    when VERSION_NUM >= 504 {
-
-    }
-
-    when !JIT_ENABLED {
-		getglobal :: proc (L: ^State , name: cstring) -> c.int ---
-		setglobal :: proc (L: ^State , name: cstring) ---
-	}
-	
-	
-	
 }
 
 

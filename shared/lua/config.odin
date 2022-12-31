@@ -42,6 +42,6 @@ AUTHORS ::	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
 
 SIGNATURE :: "\x1bLua"
 
-when 500 <= VERSION_NUM || VERSION_NUM > 504  {
+when VERSION_NUM <= 500 || VERSION_NUM > 504  {
     #panic("odin-lua is tested to support from version 5.1 to 5.4 - Feel free to submit a PR with more backwards compatibility changes.")
 }

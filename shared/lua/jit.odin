@@ -7,13 +7,11 @@ when JIT_ENABLED {
     ENVIRONINDEX :: -10001
     GLOBALSINDEX :: -10002
 
-    jit_setglobal :: proc "c" (L: ^State, s: cstring)
-    {
+    jit_setglobal :: proc "c" (L: ^State, s: cstring) {
         setfield(L, GLOBALSINDEX, s)
     }
 
-    jit_getglobal :: proc "c" (L: ^State, s: cstring)
-    {
-        getfield(L, GLOBALSINDEX, s)
+    jit_getglobal :: proc "c" (L: ^State, s: cstring) -> c.int {
+        return getfield(L, GLOBALSINDEX, s)
     }
 }
