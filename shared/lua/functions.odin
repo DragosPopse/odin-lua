@@ -17,7 +17,6 @@ when OVERRIDE_LIB {
 @(link_prefix = "lua_")
 foreign liblua {
     atpanic :: proc (L: ^State ,  panicf: CFunction) -> CFunction ---
-	callk :: proc (L: ^State , nargs: c.int, nresults: c.int, ctx: KContext , k: KFunction ) ---
 	checkstack :: proc (L: ^State , n: c.int ) -> c.int ---
 	close :: proc (L: ^State ) ---
 	
@@ -54,7 +53,6 @@ foreign liblua {
 	newthread :: proc (L: ^State ) -> ^State ---
 	newuserdatauv :: proc (L: ^State, sz: c.ptrdiff_t, nuvalue: c.int) -> rawptr ---
 	next :: proc (L: ^State , idx: c.int) -> c.int ---
-	pcallk :: proc (L: ^State , nargs: c.int, nresults: c.int, errfunc: c.int, ctx: KContext , k: KFunction ) -> c.int  ---
 	pushboolean :: proc (L: ^State , b: c.bool ) ---
 	pushcclosure :: proc (L: ^State , fn: CFunction, n:c.int) ---
 	pushinteger :: proc (L: ^State , n: Integer ) ---
@@ -134,6 +132,15 @@ when VERSION_NUM <= 500 {
     }
 }
 
+when VERSION_NUM <= 501 {
+    @(default_calling_convention = "c")
+    @(link_prefix = "lua_")
+    foreign liblua {
+        call :: proc(L: ^State, n: c.int, r: c.int) ---
+        pcall :: proc(L: ^State, n: c.int, r: c.int, f: c.int) -> c.int ---
+    }
+}
+
 when VERSION_NUM >= 502 {
     @(default_calling_convention = "c")
     @(link_prefix = "lua_")
@@ -147,6 +154,8 @@ when VERSION_NUM >= 502 {
         upvalueid :: proc (L: ^State , fidx: c.int, n: c.int) -> rawptr ---
         upvaluejoin :: proc (L: ^State , fidx1: c.int, n1: c.int, fidx2: c.int, n2: c.int) ---
         version :: proc (L: ^State ) -> ^Number ---
+        pcallk :: proc (L: ^State , nargs: c.int, nresults: c.int, errfunc: c.int, ctx: KContext , k: KFunction ) -> c.int  ---
+        callk :: proc (L: ^State , nargs: c.int, nresults: c.int, ctx: KContext , k: KFunction ) ---
     }
 }
 
@@ -164,10 +173,20 @@ when VERSION_NUM >= 503 {
     }
 }
 
+when VERSION_NUM <= 503 {
+    @(default_calling_convention = "c")
+    @(link_prefix = "lua_")
+    foreign liblua {
+        newuserdata :: proc(L: ^State, sz: c.ptrdiff_t) -> rawptr ---
+    }
+}
 
 
-newuserdata :: proc "c" (L: ^State, sz: c.ptrdiff_t) -> rawptr {
-	return newuserdatauv(L, sz, 1)
+
+when VERSION_NUM >= 504 {
+    newuserdata :: proc "c" (L: ^State, sz: c.ptrdiff_t) -> rawptr {
+        return newuserdatauv(L, sz, 1)
+    }
 }
 
 tonumber :: proc "c" (L: ^State, i: c.int) -> Number {
@@ -267,12 +286,14 @@ yield :: proc "c" (L : ^State, n: c.int) {
 	yieldk(L, (n), 0, nil)
 }		
 
-call :: proc "c" (L: ^State, n: c.int, r: c.int) {
-	callk(L, (n), (r), 0, nil)
-}
-
-pcall :: proc "c" (L: ^State, n: c.int, r: c.int, f: c.int) -> c.int {
-	return pcallk(L, (n), (r), (f), 0, nil)
+when VERSION_NUM >= 502 {
+    call :: proc "c" (L: ^State, n: c.int, r: c.int) {
+        callk(L, (n), (r), 0, nil)
+    }
+    
+    pcall :: proc "c" (L: ^State, n: c.int, r: c.int, f: c.int) -> c.int {
+        return pcallk(L, (n), (r), (f), 0, nil)
+    }
 }
 
 upvalueindex :: proc "c" (i: c.int) -> c.int {
