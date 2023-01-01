@@ -79,7 +79,7 @@ when VERSION_NUM < 502 {
             meta := lua.getmetatable(L, ud) 
             if meta != 0 {
                 getmetatable(L, tname)
-                if lua.rawequal(L, -1, -2) != 0 {
+                if lua.rawequal(L, -1, -2) == 0 {
                     udata = nil 
                 }
                 lua.pop(L, 2)
