@@ -9,7 +9,7 @@ when OVERRIDE_LIB {
 	when ODIN_OS == .Windows do foreign import liblua "lualib:lua.lib" 
 	else do foreign import liblua "lualib:lua"
 } else {
-    when ODIN_OS == .Windows && JIT_ENABLED do foreign import liblua "..lua/windows/luajit.lib"
+    when ODIN_OS == .Windows && JIT_ENABLED do foreign import liblua "../lua/windows/luajit.lib"
 	else when ODIN_OS == .Windows do foreign import liblua "../lua/windows/lua542.lib"
 	when ODIN_OS == .Linux do foreign import liblua "system:lua"
 	when ODIN_OS == .Darwin do foreign import liblua "system:lua"
@@ -79,7 +79,7 @@ when VERSION_NUM < 502 {
             meta := lua.getmetatable(L, ud) 
             if meta != 0 {
                 getmetatable(L, tname)
-                if !lua.rawequal(L, -1, -2) {
+                if lua.rawequal(L, -1, -2) != 0 {
                     udata = nil 
                 }
                 lua.pop(L, 2)

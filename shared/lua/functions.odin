@@ -246,6 +246,8 @@ tostring :: proc "c" (L: ^State, i: c.int) -> string {
 	return string( tolstring(L, (i), nil) ) 
 }	
 
+// Note(Dragos): Work on compatibility for these. Implement rotate or something
+/*
 insert :: proc "c" (L: ^State, idx:c.int) {
 	rotate(L, (idx), 1)
 }	
@@ -259,6 +261,7 @@ replace :: proc "c" (L: ^State, idx: c.int)	{
 	copy(L, -1, (idx))
 	pop(L, 1)
 }
+*/
 
 yield :: proc "c" (L : ^State, n: c.int) {
 	yieldk(L, (n), 0, nil)
