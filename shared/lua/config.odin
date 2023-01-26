@@ -16,7 +16,6 @@ DIGITS :: [?]string {
 
 MAX_ODIN_STRLEN :: #config(LUA_MAX_ODIN_STRLEN, 256)
 JIT_ENABLED :: #config(LUA_JIT, false)
-OVERRIDE_LIB :: #config(LUA_OVERRIDE_LIB, false)
 
 when  JIT_ENABLED {
 	MAJOR_VERSION :: 5

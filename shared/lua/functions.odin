@@ -3,12 +3,12 @@ package lua
 import "core:c" 
 import "core:strings"
 
-when OVERRIDE_LIB {
-	when ODIN_OS == .Windows do foreign import liblua "lualib:lua.lib" 
-	else do foreign import liblua "lualib:lua"
+when JIT_ENABLED {
+	when ODIN_OS == .Windows do foreign import liblua "windows/luajit.lib"
+	when ODIN_OS == .Linux do foreign import liblua "system:luajit"
+	when ODIN_OS == .Darwin do foreign import liblua "system:luajit"
 } else {
-    when ODIN_OS == .Windows && JIT_ENABLED do foreign import liblua "windows/luajit.lib"
-	else when ODIN_OS == .Windows do foreign import liblua "windows/lua542.lib"
+	when ODIN_OS == .Windows do foreign import liblua "windows/lua542.lib"
 	when ODIN_OS == .Linux do foreign import liblua "system:lua"
 	when ODIN_OS == .Darwin do foreign import liblua "system:lua"
 }
