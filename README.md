@@ -1,6 +1,6 @@
 # odin-lua
 
-Lua bindings updated from the fork to support -string-style and link_prefix.
+Updated version of the fork, fixing many bugs and supporting more features (including luajit).
 
 
 ### Usage
